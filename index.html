@@ -291,7 +291,7 @@
     <div class="clock" id="clock">12:30 AM</div>
     <div class="status"><span class="dot"></span>just you</div>
     <div class="actions">
-      <button class="pill" id="addBtn">＋ Add Music</button>
+      <button class="pill" id="addBtn">＋ Local Music</button>
       <button class="pill" id="playlistBtn">Playlist</button>
       <a class="pill" href="./library.html" style="display:inline-block;text-decoration:none">Find Music</a>
       <button class="pill" id="ambientBtn">✦ Night</button>
@@ -305,7 +305,7 @@
   </main>
 
   <div class="playlist" id="playlist">
-    <div class="empty">No songs yet.<br>Click “＋ Add Music” to bring your music here.</div>
+    <div class="empty">No shared songs yet.<br>Published tracks will appear here for everyone.</div>
   </div>
 
   <section class="player">
@@ -313,7 +313,7 @@
       <div class="cover">♫</div>
       <div class="meta">
         <div class="title" id="title">Your night starts here</div>
-        <div class="artist" id="artist">Add music from your desktop</div>
+        <div class="artist" id="artist">Published tracks are shared with everyone</div>
       </div>
       <div class="controls">
         <button class="ctrl" id="prev">⏮</button>
@@ -357,7 +357,7 @@
   function render() {
     playlistEl.innerHTML = tracks.length
       ? tracks.map((t, i) => `<div class="track ${i === index ? 'active' : ''}" data-i="${i}"><span>♫</span><span>${escapeHtml(t.name)}</span></div>`).join('')
-      : '<div class="empty">No songs yet.<br>Click “＋ Add Music” to bring your music here.</div>';
+      : '<div class="empty">No shared songs yet.<br>Published tracks will appear here for everyone.</div>';
     playlistEl.querySelectorAll('.track').forEach(x => x.onclick = () => load(+x.dataset.i, true));
   }
 
@@ -371,9 +371,38 @@
     const t = tracks[i];
     audio.src = t.url;
     title.textContent = t.name;
-    artist.textContent = 'Your local music';
+    artist.textContent = t.artist || (t.published ? 'Shared music library' : 'Your local music');
     render();
     if (auto) audio.play().catch(() => {});
+  }
+
+  async function loadPublishedTracks() {
+    try {
+      const response = await fetch('./music/tracks.json', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Could not load the shared music list');
+      const data = await response.json();
+      const published = (Array.isArray(data.tracks) ? data.tracks : [])
+        .filter(t => t && (t.src || t.url))
+        .map(t => {
+          const source = t.src || t.url;
+          return {
+            name: t.title || t.name || source.split('/').pop(),
+            artist: t.artist || 'Shared music library',
+            url: new URL(source, document.baseURI).href,
+            published: true
+          };
+        });
+      const hadSelection = index >= 0;
+      tracks = published.concat(tracks);
+      if (!hadSelection && published.length) load(0);
+      else {
+        if (hadSelection) index += published.length;
+        render();
+      }
+    } catch (error) {
+      render();
+      console.warn('Shared music list could not be loaded:', error);
+    }
   }
 
   addBtn.onclick = () => files.click();
@@ -419,6 +448,9 @@
   }
   clock();
   setInterval(clock, 1000);
+
+  render();
+  loadPublishedTracks();
 
   let night = true;
   document.getElementById('ambientBtn').onclick = () => {
