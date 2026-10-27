@@ -449,9 +449,15 @@
   audio.onplay = () => play.textContent = '❚❚';
   audio.onpause = () => play.textContent = '▶';
 
-  document.getElementById('prev').onclick = () => { if (tracks.length) load((index - 1 + tracks.length) % tracks.length, true); };
-  document.getElementById('next').onclick = () => { if (tracks.length) load((index + 1) % tracks.length, true); };
-  audio.onended = () => { if (tracks.length) load((index + 1) % tracks.length, true); };
+  document.getElementById('prev').onclick = () => {
+    if (tracks.length) load((index - 1 + tracks.length) % tracks.length, true);
+  };
+  document.getElementById('next').onclick = () => {
+    if (tracks.length) load((index + 1) % tracks.length, true);
+  };
+  audio.onended = () => {
+    if (tracks.length) load((index + 1) % tracks.length, true);
+  };
 
   audio.ontimeupdate = () => {
     seek.value = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
@@ -459,18 +465,23 @@
   };
 
   audio.onloadedmetadata = () => duration.textContent = fmt(audio.duration);
-  seek.oninput = () => { if (audio.duration) audio.currentTime = (seek.value / 100) * audio.duration; };
+  seek.oninput = () => {
+    if (audio.duration) audio.currentTime = (seek.value / 100) * audio.duration;
+  };
 
   volume.oninput = () => audio.volume = volume.value;
   audio.volume = 0.8;
 
   playlistBtn.onclick = () => playlistEl.classList.toggle('open');
   document.addEventListener('click', e => {
-    if (!playlistEl.contains(e.target) && e.target !== playlistBtn) playlistEl.classList.remove('open');
+    if (!playlistEl.contains(e.target) && e.target !== playlistBtn) {
+      playlistEl.classList.remove('open');
+    }
   });
 
   function clock() {
-    document.getElementById('clock').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toUpperCase();
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toUpperCase();
   }
   clock();
   setInterval(clock, 1000);
@@ -481,11 +492,12 @@
   let night = true;
   document.getElementById('ambientBtn').onclick = () => {
     night = !night;
-    document.querySelector('.scene').style.filter = night ? '' : 'brightness(1.18) saturate(.8)';
+    document.querySelector('.scene').style.filter =
+      night ? '' : 'brightness(1.18) saturate(.8)';
     document.getElementById('ambientBtn').textContent = night ? '✦ Night' : '☀ Dawn';
   };
-  // Set this to a backend endpoint that records visits and active sessions.
-  // GitHub Pages cannot store shared visitor counts by itself.
+
+  // Replace this with a backend endpoint that records visits and active sessions.
   const COUNTER_API = 'https://YOUR-BACKEND-URL/counter';
   const COUNTER_SITE = 'my-night-music-room';
 
@@ -508,13 +520,19 @@
         })
       });
 
-      if (!response.ok) throw new Error('Counter request failed: ' + response.status);
+      if (!response.ok) {
+        throw new Error('Counter request failed: ' + response.status);
+      }
 
       const data = await response.json();
       document.getElementById('visitCount').textContent =
-        Number.isFinite(Number(data.totalVisits)) ? Number(data.totalVisits).toLocaleString() : '—';
+        Number.isFinite(Number(data.totalVisits))
+          ? Number(data.totalVisits).toLocaleString()
+          : '—';
       document.getElementById('onlineCount').textContent =
-        Number.isFinite(Number(data.onlineNow)) ? Number(data.onlineNow).toLocaleString() : '—';
+        Number.isFinite(Number(data.onlineNow))
+          ? Number(data.onlineNow).toLocaleString()
+          : '—';
     } catch (error) {
       console.warn('Counter could not be updated:', error);
     }
@@ -522,7 +540,6 @@
 
   updateCounter();
   setInterval(updateCounter, 25000);
-
 </script>
 
 </body>
