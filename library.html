@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Browse songs and find them on licensed music services.">
+<title>Find Music — My Night</title>
+<style>
+  :root { color-scheme: dark; --ink:#f5eee4; --muted:#c7bbb0; --line:#ffffff24; --glass:#101820e8; --gold:#d0a76c; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; color:var(--ink); font-family:Georgia,"Times New Roman",serif; background:radial-gradient(ellipse at top,#26394a 0,#101a25 48%,#07101a 100%); }
+  main { width:min(900px,calc(100% - 32px)); margin:0 auto; padding:34px 0 56px; }
+  nav { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:46px; font:14px Arial,sans-serif; }
+  a { color:inherit; }
+  .back { color:var(--muted); text-decoration:none; }
+  .back:hover { color:white; }
+  .eyebrow { color:var(--gold); font:12px Arial,sans-serif; letter-spacing:3px; text-transform:uppercase; }
+  h1 { margin:10px 0; font-size:clamp(38px,8vw,68px); font-weight:400; }
+  .intro { max-width:620px; color:var(--muted); font:16px/1.6 Arial,sans-serif; }
+  .search { width:100%; margin:28px 0 14px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:#ffffff0d; color:white; font:16px Arial,sans-serif; outline:none; }
+  .search:focus { border-color:#d0a76c99; box-shadow:0 0 0 3px #d0a76c20; }
+  .count { margin:0 0 12px; color:#adbac4; font:12px Arial,sans-serif; }
+  .list { display:grid; gap:10px; }
+  .song { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:16px 18px; border:1px solid var(--line); border-radius:16px; background:var(--glass); }
+  .song-title { font:600 16px/1.35 Arial,sans-serif; }
+  .links { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+  .service { display:inline-block; padding:9px 12px; border:1px solid #ffffff30; border-radius:999px; text-decoration:none; font:600 12px Arial,sans-serif; white-space:nowrap; }
+  .service:hover { background:#ffffff18; }
+  .empty { padding:28px 18px; border:1px solid var(--line); border-radius:16px; color:var(--muted); text-align:center; font:14px Arial,sans-serif; }
+  footer { margin-top:26px; color:#adbac4; font:12px/1.6 Arial,sans-serif; }
+  @media (max-width:600px) {
+    nav { margin-bottom:32px; }
+    .song { align-items:flex-start; flex-direction:column; gap:12px; }
+    .links { justify-content:flex-start; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <nav><a class="back" href="./">← My Night music room</a><span>SONG DIRECTORY</span></nav>
+  <header>
+    <div class="eyebrow">Find a song</div>
+    <h1>Music for your night</h1>
+    <p class="intro">Search this song list, then open Spotify or Apple Music to listen. Availability depends on your region and subscription.</p>
+  </header>
+  <label for="search" class="eyebrow">Search the directory</label>
+  <input id="search" class="search" type="search" placeholder="Type a song title…" autocomplete="off">
+  <p id="count" class="count" aria-live="polite"></p>
+  <section id="list" class="list" aria-label="Songs"></section>
+  <footer>Music plays on Spotify or Apple Music. This website lists song titles and links to those services; it does not host or stream recordings.</footer>
+</main>
+<script>
+const songs = ["Aa Chal Ke Tujhe","Abhi Na Jao Chhod Kar","Chhu Kar Mere Manko","Ek Hasina Thi Ek Diwana Tha","Gulabi Ankhen","Itna Na Mujhse Tu Pyar Badha","Jahan Mein Aesa Kaun Hai","Jane Woh Kaise Log The","Kahin Door Jab Din Dhal Jaye","Kehna Hai Kehna Hai","Khwab Ho Tum Ya Koi Haqeeqat","Kisi Ki Muskurahaton Se","Kya Hua Tera Vada","Lag Ja Gale Se Phir","Main Zindagi Ka Saath Nibhata Chala Gaya","Mere Mehboob Qayamat Hogi","Mujhe Tum Nazar Se Gira To Rahe Ho","O Mere Dil Ke Chain","Rafta Rafta Woh Meri Hasti Ka","Ruk Jana Nahin","Yun To Guzar Raha Hai","Zindagi Ek Safar Hai Suhana"];
+const list = document.getElementById("list");
+const search = document.getElementById("search");
+const count = document.getElementById("count");
+function render() {
+  const query = search.value.trim().toLocaleLowerCase();
+  const matches = songs.filter(title => title.toLocaleLowerCase().includes(query));
+  count.textContent = matches.length + (matches.length === 1 ? " song" : " songs");
+  list.innerHTML = matches.length ? matches.map(title => {
+    const q = encodeURIComponent(title);
+    return '<article class="song"><div class="song-title">' + title + '</div><div class="links">' +
+      '<a class="service" href="https://open.spotify.com/search/' + q + '" target="_blank" rel="noopener noreferrer">Spotify ↗</a>' +
+      '<a class="service" href="https://music.apple.com/search?term=' + q + '" target="_blank" rel="noopener noreferrer">Apple Music ↗</a>' +
+      '</div></article>';
+  }).join("") : '<div class="empty">No matching songs. Try another title.</div>';
+}
+search.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
