@@ -124,6 +124,23 @@
     opacity: 0.7;
   }
 
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 18px;
+    font: 12px Arial, sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .stats span {
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    background: rgba(12, 15, 20, 0.55);
+    backdrop-filter: blur(10px);
+  }
+
   .player {
     position: absolute;
     z-index: 8;
@@ -302,6 +319,10 @@
   <main class="hero">
     <h1>My Night</h1>
     <p>MUSIC • MEMORIES • MIDNIGHT</p>
+    <div class="stats" aria-live="polite" aria-label="Website visitor statistics">
+      <span>Visits: <strong id="visitCount">—</strong></span>
+      <span>Listening now: <strong id="onlineCount">—</strong></span>
+    </div>
   </main>
 
   <div class="playlist" id="playlist">
@@ -458,6 +479,45 @@
     document.querySelector('.scene').style.filter = night ? '' : 'brightness(1.18) saturate(.8)';
     document.getElementById('ambientBtn').textContent = night ? '✦ Night' : '☀ Dawn';
   };
+  // Set this to a backend endpoint that records visits and active sessions.
+  // GitHub Pages cannot store shared visitor counts by itself.
+  const COUNTER_API = 'https://YOUR-BACKEND-URL/counter';
+  const COUNTER_SITE = 'my-night-music-room';
+
+  let counterSessionId = sessionStorage.getItem('counterSessionId');
+  if (!counterSessionId) {
+    counterSessionId = crypto.randomUUID();
+    sessionStorage.setItem('counterSessionId', counterSessionId);
+  }
+
+  async function updateCounter() {
+    if (COUNTER_API.includes('YOUR-BACKEND-URL')) return;
+
+    try {
+      const response = await fetch(COUNTER_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          site: COUNTER_SITE,
+          sessionId: counterSessionId
+        })
+      });
+
+      if (!response.ok) throw new Error('Counter request failed: ' + response.status);
+
+      const data = await response.json();
+      document.getElementById('visitCount').textContent =
+        Number.isFinite(Number(data.totalVisits)) ? Number(data.totalVisits).toLocaleString() : '—';
+      document.getElementById('onlineCount').textContent =
+        Number.isFinite(Number(data.onlineNow)) ? Number(data.onlineNow).toLocaleString() : '—';
+    } catch (error) {
+      console.warn('Counter could not be updated:', error);
+    }
+  }
+
+  updateCounter();
+  setInterval(updateCounter, 25000);
+
 </script>
 
 </body>
