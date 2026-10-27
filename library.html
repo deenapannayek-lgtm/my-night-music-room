@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Browse songs and find them on licensed music services.">
+<meta name="description" content="Search songs and play tracks published in the shared music library.">
 <title>Find Music — My Night</title>
 <style>
   :root { color-scheme: dark; --ink:#f5eee4; --muted:#c7bbb0; --line:#ffffff24; --glass:#101820e8; --gold:#d0a76c; }
@@ -16,7 +16,8 @@
   .back:hover { color:white; }
   .eyebrow { color:var(--gold); font:12px Arial,sans-serif; letter-spacing:3px; text-transform:uppercase; }
   h1 { margin:10px 0; font-size:clamp(38px,8vw,68px); font-weight:400; }
-  .intro { max-width:620px; color:var(--muted); font:16px/1.6 Arial,sans-serif; }
+  h2 { margin:30px 0 12px; font:600 18px Arial,sans-serif; }
+  .intro { max-width:660px; color:var(--muted); font:16px/1.6 Arial,sans-serif; }
   .search { width:100%; margin:28px 0 14px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:#ffffff0d; color:white; font:16px Arial,sans-serif; outline:none; }
   .search:focus { border-color:#d0a76c99; box-shadow:0 0 0 3px #d0a76c20; }
   .count { margin:0 0 12px; color:#adbac4; font:12px Arial,sans-serif; }
@@ -26,7 +27,8 @@
   .links { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
   .service { display:inline-block; padding:9px 12px; border:1px solid #ffffff30; border-radius:999px; text-decoration:none; font:600 12px Arial,sans-serif; white-space:nowrap; }
   .service:hover { background:#ffffff18; }
-  .empty { padding:28px 18px; border:1px solid var(--line); border-radius:16px; color:var(--muted); text-align:center; font:14px Arial,sans-serif; }
+  .audio { width:min(360px,100%); }
+  .empty { padding:22px 18px; border:1px solid var(--line); border-radius:16px; color:var(--muted); text-align:center; font:14px/1.5 Arial,sans-serif; }
   footer { margin-top:26px; color:#adbac4; font:12px/1.6 Arial,sans-serif; }
   @media (max-width:600px) {
     nav { margin-bottom:32px; }
@@ -41,33 +43,68 @@
   <header>
     <div class="eyebrow">Find a song</div>
     <h1>Music for your night</h1>
-    <p class="intro">Search this song list, then open Spotify or Apple Music to listen. Availability depends on your region and subscription.</p>
+    <p class="intro">Search the directory. Tracks published in the shared library can be played here by every visitor; other titles link to Spotify or Apple Music.</p>
   </header>
   <label for="search" class="eyebrow">Search the directory</label>
   <input id="search" class="search" type="search" placeholder="Type a song title…" autocomplete="off">
   <p id="count" class="count" aria-live="polite"></p>
+  <h2>Published tracks</h2>
+  <section id="sharedList" class="list" aria-label="Published tracks"></section>
+  <h2>Find on music services</h2>
   <section id="list" class="list" aria-label="Songs"></section>
-  <footer>Music plays on Spotify or Apple Music. This website lists song titles and links to those services; it does not host or stream recordings.</footer>
+  <footer>Audio files in the shared library are publicly accessible from this site. Music service links open Spotify or Apple Music.</footer>
 </main>
 <script>
 const songs = ["Aa Chal Ke Tujhe","Abhi Na Jao Chhod Kar","Chhu Kar Mere Manko","Ek Hasina Thi Ek Diwana Tha","Gulabi Ankhen","Itna Na Mujhse Tu Pyar Badha","Jahan Mein Aesa Kaun Hai","Jane Woh Kaise Log The","Kahin Door Jab Din Dhal Jaye","Kehna Hai Kehna Hai","Khwab Ho Tum Ya Koi Haqeeqat","Kisi Ki Muskurahaton Se","Kya Hua Tera Vada","Lag Ja Gale Se Phir","Main Zindagi Ka Saath Nibhata Chala Gaya","Mere Mehboob Qayamat Hogi","Mujhe Tum Nazar Se Gira To Rahe Ho","O Mere Dil Ke Chain","Rafta Rafta Woh Meri Hasti Ka","Ruk Jana Nahin","Yun To Guzar Raha Hai","Zindagi Ek Safar Hai Suhana"];
 const list = document.getElementById("list");
+const sharedList = document.getElementById("sharedList");
 const search = document.getElementById("search");
 const count = document.getElementById("count");
+let sharedSongs = [];
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function render() {
   const query = search.value.trim().toLocaleLowerCase();
   const matches = songs.filter(title => title.toLocaleLowerCase().includes(query));
-  count.textContent = matches.length + (matches.length === 1 ? " song" : " songs");
+  const available = sharedSongs.filter(track => track.title.toLocaleLowerCase().includes(query));
+  count.textContent = matches.length + (matches.length === 1 ? " listed song" : " listed songs") + " · " +
+    available.length + (available.length === 1 ? " playable track" : " playable tracks");
+  sharedList.innerHTML = available.length ? available.map(track =>
+    '<article class="song"><div class="song-title">' + escapeHtml(track.title) +
+    (track.artist ? '<div style="margin-top:4px;color:#c7bbb0;font:13px Arial,sans-serif">' + escapeHtml(track.artist) + '</div>' : '') +
+    '</div><audio class="audio" controls preload="none" src="' + escapeHtml(track.url) + '">Your browser does not support audio playback.</audio></article>'
+  ).join("") : '<div class="empty">No published tracks yet. Tracks added to the shared library will appear here for everyone.</div>';
   list.innerHTML = matches.length ? matches.map(title => {
     const q = encodeURIComponent(title);
-    return '<article class="song"><div class="song-title">' + title + '</div><div class="links">' +
+    return '<article class="song"><div class="song-title">' + escapeHtml(title) + '</div><div class="links">' +
       '<a class="service" href="https://open.spotify.com/search/' + q + '" target="_blank" rel="noopener noreferrer">Spotify ↗</a>' +
       '<a class="service" href="https://music.apple.com/search?term=' + q + '" target="_blank" rel="noopener noreferrer">Apple Music ↗</a>' +
       '</div></article>';
   }).join("") : '<div class="empty">No matching songs. Try another title.</div>';
 }
+async function loadSharedSongs() {
+  try {
+    const response = await fetch("./music/tracks.json", {cache:"no-store"});
+    if (!response.ok) throw new Error("Could not load shared music list");
+    const data = await response.json();
+    sharedSongs = (Array.isArray(data.tracks) ? data.tracks : [])
+      .filter(track => track && (track.src || track.url))
+      .map(track => {
+        const source = track.src || track.url;
+        return {
+          title: track.title || track.name || source.split("/").pop(),
+          artist: track.artist || "",
+          url: new URL(source, document.baseURI).href
+        };
+      });
+  } catch (error) {
+    console.warn("Shared music list could not be loaded:", error);
+  }
+  render();
+}
 search.addEventListener("input", render);
-render();
+loadSharedSongs();
 </script>
 </body>
 </html>
