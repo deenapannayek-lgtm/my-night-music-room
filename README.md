@@ -1,19 +1,20 @@
 # My Night — Music Room
 
-A cozy, single-page music room for playing your own local tracks with a playlist and night-to-dawn ambience.
+A cozy music room with a shared, searchable audio library and night-to-dawn ambience.
 
 **[Open the live music room](https://deenapannayek-lgtm.github.io/my-night-music-room/)** · **[Find music](https://deenapannayek-lgtm.github.io/my-night-music-room/library.html)**
 
 ## Features
 
-- Add multiple audio files from your device
+- Play tracks published in the shared library, available to every visitor
+- Add local audio files for your own browser session
 - Play, pause, skip tracks, and seek through the current track
 - Adjust volume and browse the current playlist
 - Switch the scene between night and dawn
-- Search a song directory and open it on Spotify or Apple Music
+- Search the shared library and open other song titles on Spotify or Apple Music
 - Responsive layout for desktop and mobile
 
-Local audio files selected in the player stay in your browser. The song directory contains titles and outbound links to Spotify and Apple Music; it does not host or stream recordings.
+Tracks listed in `music/tracks.json` are loaded by the player and directory for every visitor. Local files selected in the player stay in that visitor's browser. To publish a track, add an audio file under `music/` and add an entry to `music/tracks.json` with `title`, optional `artist`, and `src` (for example, `music/song.mp3`). Only publish audio you have permission to distribute. The other song titles link out to Spotify and Apple Music.
 
 ## Run locally
 
